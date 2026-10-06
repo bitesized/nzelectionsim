@@ -1,0 +1,19 @@
+{
+  "name": "nzelectionsim",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Monte Carlo simulator for the 2026 New Zealand general election, driven by 1News–Verian polling.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}
