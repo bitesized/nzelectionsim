@@ -48,7 +48,7 @@ export const VERIAN_POLLS: Poll[] = [
   {
     date: '2026-10-05', fieldwork: '1–5 Oct 2026', sample: 1001,
     url: 'https://www.1news.co.nz/2026/10/06/poll-opportunity-still-in-kingmaker-seat-as-greens-hold-strong/',
-    vote: { NAT: 29, LAB: 28, GRN: 16, ACT: 9, NZF: 10, TPM: 1, OPP: 7, OTH: 1 },
+    vote: { NAT: 29, LAB: 28, GRN: 16, ACT: 9, NZF: 10, TPM: 0.6, OPP: 7, OTH: 0.8 },
   },
   {
     date: '2026-09-27', fieldwork: '23–27 Sep 2026', sample: 1004,

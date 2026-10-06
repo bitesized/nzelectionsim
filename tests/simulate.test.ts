@@ -27,7 +27,7 @@ describe('pollBase', () => {
   it('uses the latest poll when count is 1', () => {
     expect(base.sampleSize).toBeCloseTo(1001);
     expect(base.shares.reduce((a, b) => a + b, 0)).toBeCloseTo(100);
-    expect(base.shares[PARTY_IDS.indexOf('GRN')]).toBeCloseTo((16 / 101) * 100, 5);
+    expect(base.shares[PARTY_IDS.indexOf('GRN')]).toBeCloseTo((16 / 100.4) * 100, 5);
   });
 
   it('pools sample size across polls', () => {
