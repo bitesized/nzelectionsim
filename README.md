@@ -12,7 +12,7 @@ npm run build    # static site in dist/ (works from any path)
 ## What it does
 
 - Runs **100 to 1,000,000 simulations** in a Web Worker with a progress bar and a Stop button. You can set a seed so results are reproducible.
-- Uses the **latest 1News–Verian poll** (23–27 Sep 2026) or a recency-weighted average of the last 2–6 Verian polls. You can edit any party's vote share to try your own scenario.
+- Uses the **latest 1News–Verian poll** (1–5 Oct 2026) or a recency-weighted average of the last 2–6 Verian polls. You can edit any party's vote share to try your own scenario.
 - Models uncertainty in four parts: sampling error (Dirichlet, scaled by sample size and design effect), polling-industry error, movement during the campaign, and a correlated left–right swing.
 - Simulates **key electorates** that can change the result: Te Pāti Māori and Te Tai Tokerau Party in the Māori seats, Epsom, Ilam, Northland, and an independent in Te Tai Tonga. Each probability can be edited and moves with the party's vote in that simulation.
 - **MMP allocation**: a party needs 5% or one electorate to get list seats, seats won by independents come off the 120, the rest are shared by Sainte-Laguë, and overhang is kept.

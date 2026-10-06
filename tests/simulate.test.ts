@@ -25,9 +25,9 @@ const idx = { NAT: PARTY_IDS.indexOf('NAT'), LAB: PARTY_IDS.indexOf('LAB') };
 
 describe('pollBase', () => {
   it('uses the latest poll when count is 1', () => {
-    expect(base.sampleSize).toBeCloseTo(1004);
+    expect(base.sampleSize).toBeCloseTo(1001);
     expect(base.shares.reduce((a, b) => a + b, 0)).toBeCloseTo(100);
-    expect(base.shares[PARTY_IDS.indexOf('GRN')]).toBeCloseTo((16 / 100.2) * 100, 5);
+    expect(base.shares[PARTY_IDS.indexOf('GRN')]).toBeCloseTo((16 / 101) * 100, 5);
   });
 
   it('pools sample size across polls', () => {
