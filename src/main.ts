@@ -1,5 +1,5 @@
 import './styles.css';
-import { ELECTION_DATE, PARTIES, PARTY_IDS, VERIAN_POLLS } from './data/polls';
+import { ELECTION_DATE, PARTY_IDS, VERIAN_POLLS } from './data/polls';
 import { analyze, analyzeBlocs } from './engine/analyze';
 import { pollBase } from './engine/pollBase';
 import { randomSeed } from './engine/rng';
@@ -8,7 +8,7 @@ import type { WorkerRequest, WorkerResponse } from './engine/worker';
 import { hideTip } from './ui/charts';
 import { renderControls } from './ui/controls';
 import { renderResults } from './ui/results';
-import { decodeSettings, defaultSettings, loadPref, savePref, type AppState, type Coalition } from './ui/state';
+import { decodeSettings, defaultSettings, eligibleParties, loadPref, savePref, type AppState, type Coalition } from './ui/state';
 
 const AUTO_RUN_LIMIT = 100_000;
 
@@ -71,7 +71,7 @@ function buildConfig(): SimConfig {
     seed: s.seed,
     partyIds: PARTY_IDS,
     base: s.shares,
-    eligible: PARTIES.map((p) => p.contests),
+    eligible: eligibleParties(s),
     blocs: s.blocs,
     sampleSize: s.sampleSize,
     designEffect: s.designEffect,

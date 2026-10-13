@@ -1,10 +1,10 @@
-import { PARTIES, PARTY_IDS, type Bloc } from '../data/polls';
+import { PARTY_IDS, type Bloc } from '../data/polls';
 import { EVENT_KEYS, findOddities, RECORD_KEYS, type EventKey, type OddityOptions, type Oddities, type OddRecord, type RecordKey } from '../engine/oddities';
 import type { SimRaw } from '../engine/simulate';
 import { h } from './charts';
 import { fmtInt, fmtProb1, oneIn, partyColor, partyName } from './format';
 import { parliamentOf, type ResultHandlers } from './results';
-import type { AppState } from './state';
+import { eligibleParties, type AppState } from './state';
 
 const BLOC_LABEL: Record<Bloc, string> = { left: 'Left', right: 'Right', cross: 'Crossbench' };
 
@@ -29,7 +29,7 @@ const plural = (n: number, word: string, many = `${word}s`) => `${n} ${n === 1 ?
 function options(state: AppState): OddityOptions {
   return {
     blocs: state.settings.blocs,
-    eligible: PARTIES.map((p) => p.contests),
+    eligible: eligibleParties(state.settings),
     majors: [PARTY_IDS.indexOf('NAT'), PARTY_IDS.indexOf('LAB')],
   };
 }
@@ -37,7 +37,7 @@ function options(state: AppState): OddityOptions {
 const cache = new WeakMap<SimRaw, { key: string; odd: Oddities }>();
 function oddities(state: AppState): Oddities {
   const raw = state.raw!;
-  const key = state.settings.blocs.join();
+  const key = state.settings.blocs.join() + '|' + state.settings.excluded.join();
   const hit = cache.get(raw);
   if (hit?.key === key) return hit.odd;
   const odd = findOddities(raw, options(state));
