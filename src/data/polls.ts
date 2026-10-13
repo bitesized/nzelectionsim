@@ -46,6 +46,11 @@ export interface Poll {
 
 export const VERIAN_POLLS: Poll[] = [
   {
+    date: '2026-10-12', fieldwork: '8–12 Oct 2026', sample: 1007,
+    url: 'https://www.1news.co.nz/2026/10/13/poll-hipkins-and-luxon-now-neck-and-neck-opportunity-on-track-for-10-mps/',
+    vote: { NAT: 28, LAB: 28, GRN: 15, ACT: 10, NZF: 10, TPM: 0.4, OPP: 8, OTH: 1.7 },
+  },
+  {
     date: '2026-10-05', fieldwork: '1–5 Oct 2026', sample: 1001,
     url: 'https://www.1news.co.nz/2026/10/06/poll-opportunity-still-in-kingmaker-seat-as-greens-hold-strong/',
     vote: { NAT: 29, LAB: 28, GRN: 16, ACT: 9, NZF: 10, TPM: 0.6, OPP: 7, OTH: 0.8 },
