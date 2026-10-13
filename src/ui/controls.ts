@@ -161,6 +161,19 @@ function pollCard(state: AppState, on: ControlHandlers, rerender: () => void) {
             ))
           : h('span', { class: 'faint small' }, ['No seats']),
       ]),
+      h('td', {}, [
+        p.contests
+          ? h('label', { class: 'help row', title: 'Untick to force this party out of Parliament, even if it clears the threshold or wins an electorate.' }, [
+              h('input', {
+                type: 'checkbox', checked: !s.excluded[i], 'aria-label': `${p.name} can win seats`,
+                onchange: (e: Event) => {
+                  s.excluded[i] = !(e.target as HTMLInputElement).checked;
+                  on.changed();
+                },
+              }),
+            ])
+          : h('span', { class: 'faint small' }, ['—']),
+      ]),
     ]),
   );
 
@@ -190,6 +203,7 @@ function pollCard(state: AppState, on: ControlHandlers, rerender: () => void) {
         h('th', { class: 'label', style: { textAlign: 'left' } }, ['Party']),
         h('th', { class: 'label', style: { textAlign: 'left', paddingLeft: '6px' } }, ['Vote %']),
         h('th', { class: 'label', style: { textAlign: 'left' } }, ['Bloc']),
+        h('th', { class: 'label', style: { textAlign: 'left' } }, ['In Parliament']),
       ])]),
       h('tbody', {}, rows),
     ]),

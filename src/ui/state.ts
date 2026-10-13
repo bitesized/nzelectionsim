@@ -14,6 +14,8 @@ export interface Settings {
   shares: number[];
   sampleSize: number;
   blocs: Bloc[];
+  /** Force a party out of Parliament regardless of its vote share or electorate wins. */
+  excluded: boolean[];
   designEffect: number;
   systematicError: number;
   campaignDrift: number;
@@ -81,6 +83,11 @@ export function cloneElectorates(src: Electorate[] = KEY_ELECTORATES): Electorat
   return src.map((e) => ({ ...e, candidates: e.candidates.map((c) => ({ ...c })) }));
 }
 
+/** Parties allowed to receive seats: those that contest the party vote and haven't been toggled out. */
+export function eligibleParties(s: Settings): boolean[] {
+  return PARTIES.map((p, i) => p.contests && !s.excluded[i]);
+}
+
 export function defaultSettings(): Settings {
   const base = pollBase(VERIAN_POLLS, DEFAULTS.pollCount, DEFAULTS.halfLifeDays);
   return {
@@ -93,6 +100,7 @@ export function defaultSettings(): Settings {
     shares: base.published.map((v) => round(v, 2)),
     sampleSize: Math.round(base.sampleSize),
     blocs: PARTIES.map((p) => p.bloc),
+    excluded: PARTIES.map(() => false),
     designEffect: DEFAULTS.designEffect,
     systematicError: DEFAULTS.systematicError,
     campaignDrift: DEFAULTS.campaignDrift,
@@ -123,6 +131,7 @@ export function decodeSettings(hash: string): Settings | null {
     const merged = { ...d, ...parsed };
     if (!Array.isArray(merged.shares) || merged.shares.length !== PARTIES.length) merged.shares = d.shares;
     if (!Array.isArray(merged.blocs) || merged.blocs.length !== PARTIES.length) merged.blocs = d.blocs;
+    if (!Array.isArray(merged.excluded) || merged.excluded.length !== PARTIES.length) merged.excluded = d.excluded;
     if (!Array.isArray(merged.electorates)) merged.electorates = d.electorates;
     merged.n = clamp(Math.round(merged.n), 100, 1_000_000);
     return merged;
