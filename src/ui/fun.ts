@@ -36,7 +36,7 @@ function options(state: AppState): OddityOptions {
 
 const cache = new WeakMap<SimRaw, { key: string; odd: Oddities }>();
 function oddities(state: AppState): Oddities {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   const key = state.settings.blocs.join() + '|' + state.settings.excluded.join();
   const hit = cache.get(raw);
   if (hit?.key === key) return hit.odd;
@@ -47,7 +47,7 @@ function oddities(state: AppState): Oddities {
 
 /** The unusual events a single simulation matches. */
 function tagsFor(state: AppState, sim: number): EventKey[] {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   const P = raw.parties;
   const one: SimRaw = {
     n: 1,
@@ -63,7 +63,7 @@ function tagsFor(state: AppState, sim: number): EventKey[] {
 }
 
 function describeRecord(state: AppState, key: RecordKey, r: OddRecord): { title: string; value: string; detail: string } {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   const P = raw.parties;
   const share = (i: number) => raw.shares[r.sim * P + i];
   const seats = (i: number) => raw.seats[r.sim * P + i];
@@ -203,8 +203,11 @@ function eventsCard(state: AppState, on: ResultHandlers, odd: Oddities) {
 }
 
 export function funTab(state: AppState, on: ResultHandlers): HTMLElement[] {
-  if (!state.raw) {
+  if (!state.viewRaw) {
     return [h('section', { class: 'card empty' }, [state.running ? 'Running simulations…' : 'Run some simulations to find the strangest results.'])];
+  }
+  if (state.viewRaw.n === 0) {
+    return [h('section', { class: 'card empty' }, [`No simulations matched the filter: ${partyName(state.settings.conditionParty!)} stayed under 5% in none of them.`])];
   }
   const odd = oddities(state);
   return [exhibitCard(state, on, odd), recordsCard(state, on, odd), eventsCard(state, on, odd)];

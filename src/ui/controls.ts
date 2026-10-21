@@ -177,12 +177,31 @@ function pollCard(state: AppState, on: ControlHandlers, rerender: () => void) {
     ]),
   );
 
+  const conditionSelect = h('select', {
+    id: 'condition-party',
+    onchange: (e: Event) => {
+      const v = (e.target as HTMLSelectElement).value;
+      s.conditionParty = (v || null) as typeof s.conditionParty;
+      on.changed();
+    },
+  }, [
+    h('option', { value: '', selected: !s.conditionParty }, ['None']),
+    ...PARTIES.filter((p) => p.contests).map((p) =>
+      h('option', { value: p.id, selected: s.conditionParty === p.id }, [`${p.name} misses 5%`]),
+    ),
+  ]);
+
   return h('section', { class: 'card' }, [
     h('h2', {}, ['Party vote']),
     h('p', { class: 'sub' }, [
       'From ',
       h('a', { href: VERIAN_POLLS[0].url, target: '_blank', rel: 'noopener' }, ['1News–Verian']),
       '. Edit any figure to try a scenario. Blocs set the headline outcomes.',
+    ]),
+    h('div', { class: 'field' }, [
+      h('label', { for: 'condition-party' }, ['Filter results to runs where…']),
+      conditionSelect,
+      h('span', { class: 'help' }, ['Shows only the simulations where that party naturally fell short of the 5% threshold, without forcing it out.']),
     ]),
     h('div', { class: 'field' }, [h('label', { for: 'basis' }, ['Poll basis']), basisSelect]),
     s.pollCount > 1

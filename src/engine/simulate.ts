@@ -38,6 +38,29 @@ export interface SimRaw {
   independents: Uint8Array;
 }
 
+/** Build a view of `raw` containing only the simulations for which `keep` is true. */
+export function filterRaw(raw: SimRaw, keep: (sim: number) => boolean): SimRaw {
+  const P = raw.parties;
+  const kept: number[] = [];
+  for (let s = 0; s < raw.n; s++) if (keep(s)) kept.push(s);
+
+  const n = kept.length;
+  const shares = new Float32Array(n * P);
+  const seats = new Int16Array(n * P);
+  const electorates = new Uint8Array(n * P);
+  const house = new Int16Array(n);
+  const independents = new Uint8Array(n);
+  kept.forEach((s, j) => {
+    shares.set(raw.shares.subarray(s * P, s * P + P), j * P);
+    seats.set(raw.seats.subarray(s * P, s * P + P), j * P);
+    electorates.set(raw.electorates.subarray(s * P, s * P + P), j * P);
+    house[j] = raw.house[s];
+    independents[j] = raw.independents[s];
+  });
+
+  return { n, parties: P, shares, seats, electorates, house, independents };
+}
+
 export type ProgressFn = (done: number) => void;
 
 export function runSimulations(cfg: SimConfig, onProgress?: ProgressFn, progressEvery = 2000): SimRaw {

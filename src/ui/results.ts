@@ -19,6 +19,10 @@ export function renderResults(root: HTMLElement, state: AppState, on: ResultHand
   const sections: (HTMLElement | null)[] = [statusBar(state), tabBar(state, on)];
   if (state.tab === 'fun') {
     sections.push(...funTab(state, on));
+  } else if (state.raw && state.viewRaw && !state.summary) {
+    sections.push(h('section', { class: 'card empty' }, [
+      `No simulations matched the filter: ${partyName(state.settings.conditionParty!)} stayed under 5% in none of them. Try more simulations, or remove the filter.`,
+    ]));
   } else if (state.raw && state.summary) {
     sections.push(
       outcomeHero(state),
@@ -72,6 +76,7 @@ function chart(draw: (el: HTMLElement) => void, cls = 'chart') {
 function statusBar(state: AppState) {
   const r = state.run;
   const raw = state.raw;
+  const cond = state.settings.conditionParty;
   return h('div', { class: 'status-bar' }, [
     r
       ? h('span', {}, [
@@ -81,10 +86,13 @@ function statusBar(state: AppState) {
       : h('span', {}, ['No simulations yet']),
     state.running ? h('span', { class: 'stale' }, [`Running… ${Math.round(state.progress * 100)}%`]) : null,
     !state.running && state.stale && r ? h('span', { class: 'stale' }, ['Settings changed — run again to update']) : null,
+    cond && raw && state.viewRaw
+      ? h('span', { class: 'stale' }, [`Filtered to ${fmtInt(state.viewRaw.n)} of ${fmtInt(raw.n)} simulations where ${partyName(cond)} stays under 5%`])
+      : null,
     h('span', { class: 'actions' }, [
       h('button', { type: 'button', class: 'btn small', onclick: () => copyLink(state) }, ['Copy share link']),
       raw ? h('button', { type: 'button', class: 'btn small', onclick: () => exportJson(state) }, ['Summary JSON']) : null,
-      raw ? h('button', { type: 'button', class: 'btn small', onclick: () => exportCsv(raw) }, ['All runs CSV']) : null,
+      raw ? h('button', { type: 'button', class: 'btn small', onclick: () => exportCsv(state.viewRaw ?? raw) }, ['All runs CSV']) : null,
     ]),
   ]);
 }
@@ -194,7 +202,7 @@ function outcomeHero(state: AppState) {
 // ---------- Parliament ----------
 
 function typicalSim(state: AppState): number {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   const med = state.summary!.parties.map((p) => p.seatsP50);
   let best = 0, bestD = Infinity;
   for (let s = 0; s < raw.n; s++) {
@@ -207,7 +215,7 @@ function typicalSim(state: AppState): number {
 
 /** Hemicycle seat groups and bloc totals for one simulated election. */
 export function parliamentOf(state: AppState, idx: number) {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   const P = raw.parties;
   const blocs = state.settings.blocs;
 
@@ -243,7 +251,7 @@ export function parliamentOf(state: AppState, idx: number) {
 }
 
 function parliamentCard(state: AppState, on: ResultHandlers) {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   const idx = state.parliamentView === 'typical' ? typicalSim(state) : state.parliamentView;
   const { hemi, legend, shareLine, summary } = parliamentOf(state, idx);
 
@@ -342,7 +350,7 @@ function seatsCard(state: AppState, on: ResultHandlers) {
 
 const coalitionCache = new WeakMap<SimRaw, Map<string, CoalitionResult>>();
 function coalition(state: AppState, members: PartyId[]): CoalitionResult {
-  const raw = state.raw!;
+  const raw = state.viewRaw!;
   let cache = coalitionCache.get(raw);
   if (!cache) coalitionCache.set(raw, (cache = new Map()));
   const key = [...members].sort().join('+');

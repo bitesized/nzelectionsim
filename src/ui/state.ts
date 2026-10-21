@@ -1,7 +1,7 @@
-import { KEY_ELECTORATES, PARTIES, VERIAN_POLLS, type Bloc, type Electorate, type PartyId } from '../data/polls';
+import { KEY_ELECTORATES, PARTIES, PARTY_IDS, VERIAN_POLLS, type Bloc, type Electorate, type PartyId } from '../data/polls';
+import { analyze, type Summary } from '../engine/analyze';
 import { pollBase } from '../engine/pollBase';
-import type { Summary } from '../engine/analyze';
-import type { SimRaw } from '../engine/simulate';
+import { filterRaw, type SimRaw } from '../engine/simulate';
 
 export interface Settings {
   n: number;
@@ -16,6 +16,8 @@ export interface Settings {
   blocs: Bloc[];
   /** Force a party out of Parliament regardless of its vote share or electorate wins. */
   excluded: boolean[];
+  /** Restrict displayed results to simulations where this party's vote share came in under 5%. */
+  conditionParty: PartyId | null;
   designEffect: number;
   systematicError: number;
   campaignDrift: number;
@@ -40,6 +42,8 @@ export interface RunInfo {
 export interface AppState {
   settings: Settings;
   raw: SimRaw | null;
+  /** `raw`, or the subset matching `settings.conditionParty`'s under-5% condition if one is set. What results are drawn from. */
+  viewRaw: SimRaw | null;
   summary: Summary | null;
   run: RunInfo | null;
   running: boolean;
@@ -88,6 +92,23 @@ export function eligibleParties(s: Settings): boolean[] {
   return PARTIES.map((p, i) => p.contests && !s.excluded[i]);
 }
 
+/**
+ * The simulations and summary that results should be drawn from: `raw` as run, or the subset where
+ * `settings.conditionParty` came in under 5%, if that condition is set. Cheap to recompute from an
+ * existing run, so callers can redo it on any settings change without a full re-simulation.
+ */
+export function buildView(raw: SimRaw, s: Settings): { viewRaw: SimRaw; summary: Summary | null } {
+  let viewRaw = raw;
+  if (s.conditionParty) {
+    const idx = PARTY_IDS.indexOf(s.conditionParty);
+    if (idx >= 0) viewRaw = filterRaw(raw, (sim) => raw.shares[sim * raw.parties + idx] < 5);
+  }
+  const summary = viewRaw.n > 0
+    ? analyze(viewRaw, s.blocs, { NAT: PARTY_IDS.indexOf('NAT'), LAB: PARTY_IDS.indexOf('LAB') })
+    : null;
+  return { viewRaw, summary };
+}
+
 export function defaultSettings(): Settings {
   const base = pollBase(VERIAN_POLLS, DEFAULTS.pollCount, DEFAULTS.halfLifeDays);
   return {
@@ -101,6 +122,7 @@ export function defaultSettings(): Settings {
     sampleSize: Math.round(base.sampleSize),
     blocs: PARTIES.map((p) => p.bloc),
     excluded: PARTIES.map(() => false),
+    conditionParty: null,
     designEffect: DEFAULTS.designEffect,
     systematicError: DEFAULTS.systematicError,
     campaignDrift: DEFAULTS.campaignDrift,
@@ -133,6 +155,7 @@ export function decodeSettings(hash: string): Settings | null {
     if (!Array.isArray(merged.blocs) || merged.blocs.length !== PARTIES.length) merged.blocs = d.blocs;
     if (!Array.isArray(merged.excluded) || merged.excluded.length !== PARTIES.length) merged.excluded = d.excluded;
     if (!Array.isArray(merged.electorates)) merged.electorates = d.electorates;
+    if (merged.conditionParty != null && !PARTIES.some((p) => p.id === merged.conditionParty)) merged.conditionParty = null;
     merged.n = clamp(Math.round(merged.n), 100, 1_000_000);
     return merged;
   } catch {

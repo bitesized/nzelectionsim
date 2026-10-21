@@ -1,6 +1,5 @@
 import './styles.css';
 import { ELECTION_DATE, PARTY_IDS, VERIAN_POLLS } from './data/polls';
-import { analyze, analyzeBlocs } from './engine/analyze';
 import { pollBase } from './engine/pollBase';
 import { randomSeed } from './engine/rng';
 import type { SimConfig } from './engine/simulate';
@@ -8,7 +7,7 @@ import type { WorkerRequest, WorkerResponse } from './engine/worker';
 import { hideTip } from './ui/charts';
 import { renderControls } from './ui/controls';
 import { renderResults } from './ui/results';
-import { decodeSettings, defaultSettings, eligibleParties, loadPref, savePref, type AppState, type Coalition } from './ui/state';
+import { buildView, decodeSettings, defaultSettings, eligibleParties, loadPref, savePref, type AppState, type Coalition } from './ui/state';
 
 const AUTO_RUN_LIMIT = 100_000;
 
@@ -17,6 +16,7 @@ const fromHash = location.hash.startsWith('#s=') ? decodeSettings(location.hash.
 const state: AppState = {
   settings: fromHash ?? defaultSettings(),
   raw: null,
+  viewRaw: null,
   summary: null,
   run: null,
   running: false,
@@ -108,7 +108,9 @@ function run() {
       setProgress(state.progress);
     } else if (msg.type === 'done') {
       state.raw = msg.raw;
-      state.summary = analyze(msg.raw, state.settings.blocs, { NAT: PARTY_IDS.indexOf('NAT'), LAB: PARTY_IDS.indexOf('LAB') });
+      const { viewRaw, summary } = buildView(msg.raw, state.settings);
+      state.viewRaw = viewRaw;
+      state.summary = summary;
       state.run = { n: config.n, seed: config.seed, ms: msg.ms, basis };
       state.running = false;
       state.stale = false;
@@ -169,8 +171,12 @@ let autoTimer: number | undefined;
 function onSettingsChanged() {
   state.stale = true;
   if (history.replaceState && location.hash) history.replaceState(null, '', location.pathname);
-  // Bloc outcomes can be re-read from the existing runs immediately.
-  if (state.raw && state.summary) state.summary.blocs = analyzeBlocs(state.raw, state.settings.blocs);
+  // Bloc membership and the conditional filter can be re-read from the existing runs immediately.
+  if (state.raw) {
+    const { viewRaw, summary } = buildView(state.raw, state.settings);
+    state.viewRaw = viewRaw;
+    state.summary = summary;
+  }
   if (state.settings.autoRun && state.settings.n <= AUTO_RUN_LIMIT) {
     clearTimeout(autoTimer);
     autoTimer = window.setTimeout(run, 250);

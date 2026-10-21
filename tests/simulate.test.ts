@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { KEY_ELECTORATES, PARTIES, PARTY_IDS, VERIAN_POLLS } from '../src/data/polls';
 import { analyze, coalitionOdds } from '../src/engine/analyze';
 import { pollBase } from '../src/engine/pollBase';
-import { runSimulations, type SimConfig } from '../src/engine/simulate';
+import { filterRaw, runSimulations, type SimConfig } from '../src/engine/simulate';
 
 const base = pollBase(VERIAN_POLLS, 1, 0);
 const config = (over: Partial<SimConfig> = {}): SimConfig => ({
@@ -74,5 +74,34 @@ describe('runSimulations', () => {
     expect(b.rightMajority + b.leftMajority + b.crossbenchDecides + b.deadlock).toBeCloseTo(1, 10);
     const all = coalitionOdds(raw, PARTY_IDS.map((_, i) => i));
     expect(all.pMajority).toBe(1);
+  });
+});
+
+describe('filterRaw', () => {
+  it('keeps only the simulations matching the predicate, with consistent arrays', () => {
+    const raw = runSimulations(config());
+    const opp = PARTY_IDS.indexOf('OPP');
+    const filtered = filterRaw(raw, (s) => raw.shares[s * raw.parties + opp] < 5);
+
+    let expectedCount = 0;
+    for (let s = 0; s < raw.n; s++) if (raw.shares[s * raw.parties + opp] < 5) expectedCount++;
+    expect(filtered.n).toBe(expectedCount);
+    expect(filtered.n).toBeGreaterThan(0);
+    expect(filtered.n).toBeLessThan(raw.n);
+
+    for (let s = 0; s < filtered.n; s++) {
+      expect(filtered.shares[s * filtered.parties + opp]).toBeLessThan(5);
+    }
+
+    // A conditional summary should only ever show OPP under 5% in every kept run.
+    const sum = analyze(filtered, PARTIES.map((p) => p.bloc), idx);
+    expect(sum.parties[opp].pThreshold).toBe(0);
+  });
+
+  it('returns an empty raw when nothing matches', () => {
+    const raw = runSimulations(config());
+    const filtered = filterRaw(raw, () => false);
+    expect(filtered.n).toBe(0);
+    expect(filtered.shares.length).toBe(0);
   });
 });
