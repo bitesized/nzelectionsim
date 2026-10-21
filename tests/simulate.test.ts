@@ -25,9 +25,9 @@ const idx = { NAT: PARTY_IDS.indexOf('NAT'), LAB: PARTY_IDS.indexOf('LAB') };
 
 describe('pollBase', () => {
   it('uses the latest poll when count is 1', () => {
-    expect(base.sampleSize).toBeCloseTo(1007);
+    expect(base.sampleSize).toBeCloseTo(1003);
     expect(base.shares.reduce((a, b) => a + b, 0)).toBeCloseTo(100);
-    expect(base.shares[PARTY_IDS.indexOf('GRN')]).toBeCloseTo((15 / 101.1) * 100, 5);
+    expect(base.shares[PARTY_IDS.indexOf('GRN')]).toBeCloseTo((16 / 102.4) * 100, 5);
   });
 
   it('pools sample size across polls', () => {
@@ -61,10 +61,10 @@ describe('runSimulations', () => {
     const raw = runSimulations(config({ systematicError: 0, campaignDrift: 0, blocSwing: 0, n: 3000 }));
     const sum = analyze(raw, PARTIES.map((p) => p.bloc), idx);
     const g = PARTY_IDS.indexOf('GRN');
-    expect(sum.parties[g].shareMean).toBeGreaterThan(14.1);
-    expect(sum.parties[g].shareMean).toBeLessThan(15.6);
-    expect(sum.parties[g].seatsP50).toBeGreaterThanOrEqual(17);
-    expect(sum.parties[g].seatsP50).toBeLessThanOrEqual(19);
+    expect(sum.parties[g].shareMean).toBeGreaterThan(14.9);
+    expect(sum.parties[g].shareMean).toBeLessThan(16.4);
+    expect(sum.parties[g].seatsP50).toBeGreaterThanOrEqual(18);
+    expect(sum.parties[g].seatsP50).toBeLessThanOrEqual(20);
   });
 
   it('produces outcome probabilities that sum to 1', () => {
